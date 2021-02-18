@@ -36,7 +36,7 @@ public class Order {
     private OrderStatus status; // 주문상태 [ORDER, CANCEL]
 
     // == 연관관계 메서드==//
-    public void SetMember(Member member){
+    public void setMember(Member member){
         this.member = member;
         member.getOrders().add(this);
     }
@@ -49,5 +49,48 @@ public class Order {
     public void setDelivery(Delivery delivery) {
         this.delivery = delivery;
         delivery.setOrder(this);
+    }
+
+    // 자바 (...)기호 -> 가변인자 : 매개변수를 동적으로 받을 수 있다.
+    //==생성 메서드==//
+    public static Order createOrder(Member member, Delivery delivery, OrderItem... orderItems){
+        Order order = new Order();
+        order.setMember(member);
+        order.setDelivery(delivery);
+        for (OrderItem orderItem : orderItems) {
+            order.addOrderItem(orderItem);
+        }
+
+        order.setStatus(OrderStatus.ORDER);
+        order.setOrderDate(LocalDateTime.now());
+        return order;
+    }
+
+
+    //==비지니스 로직==//
+    /**
+     * 주문 취소
+     */
+    public void cancel() {
+        if (delivery.getStatus() == DeliberyStatus.COMP) {
+            throw new IllegalStateException("이미 배송완료도니 상품은 취소가 불가능합니다");
+        }
+
+        this.setStatus(OrderStatus.CANCEL);
+        for (OrderItem orderitem : orderItems) {
+            orderitem.cancel();
+        }
+    }
+
+    //==조회 로직==//
+    /**
+     * 전체 주문 가격 조회
+     */
+    public int getTotalPrice() {
+        int totalPrice = 0;
+        for (OrderItem orderitem : orderItems) {
+            totalPrice += orderitem.getTotalPrice();
+        }
+        return totalPrice;
     }
 }
